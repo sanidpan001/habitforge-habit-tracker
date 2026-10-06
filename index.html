@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en" id="top">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HabitForge — Free Habit Tracker App with Streaks, Weekly Goals &amp; Progress Rings</title>
+<meta name="description" content="HabitForge is a free habit tracker app with no signup. Track daily, weekly (3x per week) and numeric goals, freeze streaks on rest days, stack habits, and view a full-year calendar.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f7fee7; --primary:#65a30d; --accent:#0ea5e9; --ink:#1a2e05; --muted:#5b6b3f; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--ink); font-family:'Plus Jakarta Sans',system-ui,sans-serif; }
+  .card { background:#ffffff; border:1px solid #e3edc9; border-radius:1.25rem; box-shadow:0 10px 30px rgba(101,163,13,.08); }
+  .field { background:#f7fee7; border:1px solid #d9e8b8; border-radius:.8rem; color:var(--ink); padding:.65rem .9rem; width:100%; font-weight:500; }
+  .field:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(14,165,233,.18); }
+  select.field option { background:#ffffff; }
+  .btn-primary { background:linear-gradient(135deg,#65a30d,#4d7c0f); color:#fff; font-weight:800; border-radius:.9rem; padding:.75rem 1.5rem; box-shadow:0 8px 22px rgba(101,163,13,.35); transition:transform .15s ease, box-shadow .15s ease; }
+  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 28px rgba(101,163,13,.45); }
+  .btn-accent { background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; font-weight:800; border-radius:.9rem; padding:.65rem 1.3rem; box-shadow:0 8px 22px rgba(14,165,233,.32); transition:transform .15s ease; }
+  .btn-accent:hover { transform:translateY(-2px); }
+  .btn-ghost { border:1.5px solid #d9e8b8; color:var(--primary); border-radius:.8rem; padding:.55rem 1.1rem; font-weight:700; background:#fff; transition:all .15s ease; }
+  .btn-ghost:hover { border-color:var(--primary); background:#f7fee7; }
+  .habit-card { background:#fff; border:1.5px solid #e3edc9; border-radius:1.1rem; transition:transform .15s ease, box-shadow .15s ease; }
+  .habit-card:hover { transform:translateY(-2px); box-shadow:0 14px 32px rgba(101,163,13,.14); }
+  .emoji-btn { font-size:1.5rem; width:2.8rem; height:2.8rem; border-radius:.8rem; border:2px solid transparent; background:#f7fee7; transition:all .15s ease; }
+  .emoji-btn:hover { transform:scale(1.1); }
+  .emoji-btn.sel { border-color:var(--primary); background:#ecfccb; }
+  .color-dot { width:2rem; height:2rem; border-radius:9999px; border:3px solid transparent; cursor:pointer; transition:transform .15s ease; }
+  .color-dot:hover { transform:scale(1.15); }
+  .color-dot.sel { border-color:#1a2e05; }
+  .wdot { width:1.65rem; height:1.65rem; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-size:.62rem; font-weight:800; border:2px solid #e3edc9; color:#9db27a; background:#fff; }
+  .wdot.done { background:var(--primary); border-color:var(--primary); color:#fff; }
+  .wdot.frozen { background:#e0f2fe; border-color:var(--accent); color:#0284c7; }
+  .wdot.today { box-shadow:0 0 0 2px rgba(14,165,233,.5); }
+  .check-toggle { width:100%; border-radius:.9rem; padding:.7rem; font-weight:800; border:2px dashed #c9dba4; color:var(--primary); background:#fbfff0; transition:all .15s ease; }
+  .check-toggle:hover { border-color:var(--primary); }
+  .check-toggle.on { background:linear-gradient(135deg,#65a30d,#4d7c0f); color:#fff; border-style:solid; border-color:#4d7c0f; }
+  .yday { aspect-ratio:1; border-radius:.32rem; font-size:.58rem; display:flex; align-items:center; justify-content:center; background:#eef4dd; color:transparent; cursor:default; }
+  .yday.dim { background:transparent; }
+  .yday.lvl1 { background:#d9f99d; color:transparent; }
+  .yday.lvl2 { background:#a3e635; color:transparent; }
+  .yday.lvl3 { background:#65a30d; color:#fff; }
+  .yday.frozen { outline:2px solid var(--accent); outline-offset:-2px; }
+  .streak-flame { display:inline-flex; align-items:center; gap:.25rem; background:#fff7ed; border:1px solid #fed7aa; color:#ea580c; font-weight:800; border-radius:9999px; padding:.2rem .65rem; font-size:.8rem; }
+  .stat-tile { background:#fff; border:1px solid #e3edc9; border-radius:1rem; padding:1rem; text-align:center; }
+  .stat-num { font-size:1.9rem; font-weight:800; color:var(--primary); }
+  .freeze-chip { display:inline-flex; align-items:center; gap:.5rem; background:#e0f2fe; border:1px solid #7dd3fc; color:#0369a1; border-radius:9999px; padding:.3rem .4rem .3rem .8rem; font-size:.82rem; font-weight:700; }
+  details.faq { background:#fff; border:1px solid #e3edc9; border-radius:.9rem; }
+  details.faq summary { cursor:pointer; padding:1rem 1.25rem; font-weight:700; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+  details.faq summary::-webkit-details-marker { display:none; }
+  details.faq summary::after { content:'+'; color:var(--accent); font-size:1.5rem; font-weight:800; flex:none; }
+  details.faq[open] summary::after { content:'−'; }
+  details.faq .faq-body { padding:0 1.25rem 1.25rem; color:#4d5b34; line-height:1.7; }
+  .article-prose h2 { color:#4d7c0f; font-size:1.5rem; font-weight:800; margin:2.2rem 0 .9rem; }
+  .article-prose h3 { color:#0284c7; font-size:1.15rem; font-weight:700; margin:1.6rem 0 .6rem; }
+  .article-prose p { margin:.9rem 0; line-height:1.8; color:#3f4a28; }
+  .article-prose ul, .article-prose ol { margin:.9rem 0; padding-left:1.4rem; color:#3f4a28; line-height:1.8; }
+  .article-prose ul { list-style:disc; }
+  .article-prose ol { list-style:decimal; }
+  .article-prose li { margin:.4rem 0; }
+  .article-prose table { width:100%; border-collapse:collapse; margin:1.2rem 0; font-size:.9rem; }
+  .article-prose th { background:#ecfccb; color:#4d7c0f; text-align:left; padding:.6rem .8rem; border:1px solid #d9e8b8; }
+  .article-prose td { padding:.55rem .8rem; border:1px solid #e3edc9; color:#3f4a28; }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-track { background:#eef4dd; }
+  ::-webkit-scrollbar-thumb { background:#a3c14a; border-radius:9999px; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Sticky header -->
+<header class="sticky top-0 z-50" style="background:rgba(247,254,231,.94); backdrop-filter:blur(10px); border-bottom:1px solid #e3edc9;">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-2.5">
+      <svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true">
+        <rect x="3" y="3" width="30" height="30" rx="9" fill="#65a30d"/>
+        <path d="M11 23l4-9 3 6 3-4 4 7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="25.5" cy="11.5" r="2.6" fill="#0ea5e9"/>
+      </svg>
+      <span class="text-2xl font-extrabold tracking-tight">Habit<span style="color:#65a30d">Forge</span></span>
+    </a>
+    <nav class="flex items-center gap-5 text-sm font-bold">
+      <a href="#top" class="hover:text-[#0ea5e9] transition-colors">Home</a>
+      <a href="https://fixoraa.tech" class="hover:text-[#0ea5e9] transition-colors">More Tools</a>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-6 text-center">
+  <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight">Free Habit Tracker App —<br class="hidden sm:block"> <span style="color:#65a30d">Forge Streaks</span> That Actually Stick</h1>
+  <p class="mt-3 max-w-2xl mx-auto text-[#5b6b3f] font-medium">Daily checkmarks, "3x per week" frequencies, and measurable numeric goals — with streak freezes for rest days, habit stacking, and a full-year calendar. No signup, no paywall, ever.</p>
+  <div class="mt-4 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-extrabold" style="background:#ecfccb; border:1.5px solid #65a30d; color:#4d7c0f;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>
+    Unlimited Free Usage — no signup, no paywall
+  </div>
+</section>
+
+<!-- TOP AD (verbatim) -->
+<div class="no-print mx-auto max-w-6xl px-4 sm:px-6 pt-4" role="complementary" aria-label="Advertisement">
+  <div class="mx-auto text-center" style="max-width:728px">
+    <span class="block text-[10px] tracking-[0.18em] uppercase text-slate-400 mb-1.5">Advertisement</span>
+    <div class="flex justify-center overflow-hidden">
+      <div class="origin-top scale-[0.44] sm:scale-100 shrink-0">
+        <script>
+          atOptions = { 'key' : '4e68ac77881c17fe128a46565d9a4e8c', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+        </script>
+        <script src="https://www.highrevenueformat.com/4e68ac77881c17fe128a46565d9a4e8c/invoke.js"></script>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOOL -->
+<main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+
+  <!-- Stats -->
+  <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" aria-label="Overview stats">
+    <div class="stat-tile"><div class="stat-num" id="statHabits">0</div><div class="text-xs font-bold text-[#5b6b3f] uppercase tracking-wide">Habits</div></div>
+    <div class="stat-tile"><div class="stat-num" id="statStreak">0</div><div class="text-xs font-bold text-[#5b6b3f] uppercase tracking-wide">Total streak days</div></div>
+    <div class="stat-tile"><div class="stat-num" id="statWeek">0%</div><div class="text-xs font-bold text-[#5b6b3f] uppercase tracking-wide">Week completion</div></div>
+    <div class="stat-tile"><div class="stat-num" id="statFrozen">0</div><div class="text-xs font-bold text-[#5b6b3f] uppercase tracking-wide">Freeze days banked</div></div>
+  </section>
+
+  <div class="grid lg:grid-cols-5 gap-6">
+
+    <!-- Left column: add habit + today's habits -->
+    <div class="lg:col-span-3 space-y-6">
+
+      <!-- ===== ADD HABIT ===== -->
+      <section class="card p-5 sm:p-7" aria-label="Add a new habit">
+        <h2 class="text-2xl font-extrabold mb-1">➕ Forge a New Habit</h2>
+        <p class="text-sm text-[#5b6b3f] font-medium mb-5">Pick a rhythm that fits real life — not just "do it every day".</p>
+
+        <label class="block text-sm font-bold mb-1.5" for="habitName">Habit name</label>
+        <input id="habitName" class="field mb-4" type="text" maxlength="60" placeholder="e.g. Read books, Gym, Meditate">
+
+        <div class="text-sm font-bold mb-1.5">Icon</div>
+        <div class="flex flex-wrap gap-2 mb-4" id="emojiPicker" role="radiogroup" aria-label="Habit icon">
+          <button type="button" class="emoji-btn sel" data-emoji="✅">✅</button>
+          <button type="button" class="emoji-btn" data-emoji="📚">📚</button>
+          <button type="button" class="emoji-btn" data-emoji="🏋️">🏋️</button>
+          <button type="button" class="emoji-btn" data-emoji="🧘">🧘</button>
+          <button type="button" class="emoji-btn" data-emoji="💧">💧</button>
+          <button type="button" class="emoji-btn" data-emoji="🏃">🏃</button>
+          <button type="button" class="emoji-btn" data-emoji="✍️">✍️</button>
+          <button type="button" class="emoji-btn" data-emoji="💤">💤</button>
+          <button type="button" class="emoji-btn" data-emoji="🥗">🥗</button>
+          <button type="button" class="emoji-btn" data-emoji="💰">💰</button>
+        </div>
+
+        <label class="block text-sm font-bold mb-1.5" for="habitType">Tracking style</label>
+        <select id="habitType" class="field mb-4">
+          <option value="check">Daily checkmark — done or not</option>
+          <option value="freq">X times per week — flexible frequency</option>
+          <option value="numeric">Numeric goal — measurable target</option>
+        </select>
+
+        <div id="freqRow" class="hidden mb-4">
+          <label class="block text-sm font-bold mb-1.5" for="habitFreq">Times per week</label>
+          <input id="habitFreq" class="field" type="number" min="1" max="7" value="3">
+          <p class="text-xs text-[#5b6b3f] mt-1 font-medium">Week streaks count when you hit this many days in a Monday–Sunday window.</p>
+        </div>
+
+        <div id="numericRow" class="hidden mb-4">
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-sm font-bold mb-1.5" for="habitTarget">Target</label>
+              <input id="habitTarget" class="field" type="number" min="1" step="any" value="20">
+            </div>
+            <div>
+              <label class="block text-sm font-bold mb-1.5" for="habitUnit">Unit</label>
+              <input id="habitUnit" class="field" type="text" maxlength="20" value="pages">
+            </div>
+            <div>
+              <label class="block text-sm font-bold mb-1.5" for="habitScope">Per</label>
+              <select id="habitScope" class="field">
+                <option value="day">Day</option>
+                <option value="week">Week</option>
+              </select>
+            </div>
+          </div>
+          <p class="text-xs text-[#5b6b3f] mt-1 font-medium">e.g. read 20 pages a day — the ring fills as you log.</p>
+        </div>
+
+        <label class="block text-sm font-bold mb-1.5" for="habitStack">Stack after (habit stacking)</label>
+        <select id="habitStack" class="field mb-4">
+          <option value="">— No stack, standalone habit —</option>
+        </select>
+
+        <div class="text-sm font-bold mb-1.5">Colour</div>
+        <div class="flex flex-wrap gap-2 mb-5" id="colorPicker" role="radiogroup" aria-label="Habit colour">
+          <button type="button" class="color-dot sel" data-color="#65a30d" style="background:#65a30d" aria-label="Lime"></button>
+          <button type="button" class="color-dot" data-color="#0ea5e9" style="background:#0ea5e9" aria-label="Sky"></button>
+          <button type="button" class="color-dot" data-color="#f59e0b" style="background:#f59e0b" aria-label="Amber"></button>
+          <button type="button" class="color-dot" data-color="#ec4899" style="background:#ec4899" aria-label="Pink"></button>
+          <button type="button" class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6" aria-label="Violet"></button>
+          <button type="button" class="color-dot" data-color="#ef4444" style="background:#ef4444" aria-label="Red"></button>
+          <button type="button" class="color-dot" data-color="#14b8a6" style="background:#14b8a6" aria-label="Teal"></button>
+        </div>
+
+        <button id="btnAddHabit" class="btn-primary w-full sm:w-auto">Forge This Habit 🔨</button>
+      </section>
+
+      <!-- ===== TODAY ===== -->
+      <section class="card p-5 sm:p-7" aria-label="Today's habits">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-extrabold">📅 Today</h2>
+          <span id="todayTitle" class="text-sm font-bold text-[#5b6b3f]"></span>
+        </div>
+        <div id="habitList" class="space-y-4">
+          <div class="text-center text-[#5b6b3f] font-medium py-10 border-2 border-dashed border-[#d9e8b8] rounded-xl">
+            No habits yet. Forge your first one above 👆
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right column -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- ===== STREAK FREEZES ===== -->
+      <section class="card p-5 sm:p-6" aria-label="Streak freezes">
+        <h2 class="text-xl font-extrabold mb-1">❄️ Streak Freeze</h2>
+        <p class="text-sm text-[#5b6b3f] font-medium mb-4">Rest day? Freeze it — frozen days preserve your streak instead of breaking it.</p>
+        <button id="btnFreezeToday" class="btn-accent w-full mb-4">Freeze Today ❄️</button>
+        <div id="freezeList" class="flex flex-wrap gap-2">
+          <span class="text-sm text-[#9db27a] font-medium">No frozen days yet.</span>
+        </div>
+      </section>
+
+      <!-- ===== BACKUP ===== -->
+      <section class="card p-5 sm:p-6" aria-label="Backup and restore">
+        <h2 class="text-xl font-extrabold mb-1">💾 Backup</h2>
+        <p class="text-sm text-[#5b6b3f] font-medium mb-4">Your data lives only in this browser. Export it any time.</p>
+        <button id="btnExport" class="btn-ghost w-full mb-3">⬇ Export JSON</button>
+        <label class="block text-sm font-bold mb-1.5" for="importText">Import JSON</label>
+        <textarea id="importText" class="field mb-3" rows="3" placeholder='Paste a HabitForge export JSON here…'></textarea>
+        <div class="flex gap-2">
+          <button id="btnImport" class="btn-ghost flex-1">⬆ Import</button>
+          <label class="btn-ghost flex-1 text-center cursor-pointer">📁 Choose file<input id="importFile" type="file" accept="application/json,.json" class="hidden"></label>
+        </div>
+        <p id="importMsg" class="text-sm font-bold mt-2"></p>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===== FULL-YEAR CALENDAR ===== -->
+  <section class="card p-5 sm:p-7 mt-8" aria-label="Full year calendar">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+      <h2 class="text-2xl font-extrabold">🗓️ Full-Year Calendar</h2>
+      <div class="flex gap-3 items-center">
+        <label class="text-sm font-bold" for="habitFilter">Habit</label>
+        <select id="habitFilter" class="field" style="width:auto">
+          <option value="all">All habits</option>
+        </select>
+        <label class="text-sm font-bold" for="yearSelect">Year</label>
+        <select id="yearSelect" class="field" style="width:auto"></select>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 mb-4 text-xs font-bold text-[#5b6b3f] flex-wrap">
+      <span class="flex items-center gap-1.5"><span class="yday lvl1" style="width:1rem;height:1rem"></span> 1 logged</span>
+      <span class="flex items-center gap-1.5"><span class="yday lvl2" style="width:1rem;height:1rem"></span> 2 logged</span>
+      <span class="flex items-center gap-1.5"><span class="yday lvl3" style="width:1rem;height:1rem"></span> 3+ logged</span>
+      <span class="flex items-center gap-1.5"><span class="yday frozen" style="width:1rem;height:1rem;background:#eef4dd"></span> Freeze day</span>
+    </div>
+    <div id="yearCal" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+  </section>
+
+</main>
+
+<!-- BOTTOM AD (verbatim) -->
+<div class="no-print mx-auto max-w-6xl px-4 sm:px-6 pb-4" role="complementary" aria-label="Advertisement">
+  <div class="mx-auto text-center" style="max-width:728px">
+    <span class="block text-[10px] tracking-[0.18em] uppercase text-slate-400 mb-1.5">Advertisement</span>
+    <div class="flex justify-center overflow-hidden">
+      <script async src="https://js.wpadmngr.com/static/adManager.js" data-admpid="464498"></script>
+    </div>
+  </div>
+</div>
+
+<!-- SEO ARTICLE -->
+<article id="seo-article" class="article-prose max-w-4xl mx-auto px-4 sm:px-6 pb-10">
+  <h2>Why Most Habit Trackers Fail (And How a Flexible One Fixes It)</h2>
+  <p>Most people do not fail at habits because they lack willpower. They fail because the habit tracker app they downloaded on a burst of motivation demands perfection: a binary daily checkmark, a chain of unbroken days, and zero tolerance for travel, illness, or a bad Tuesday. Miss one day and the streak dies, the motivation evaporates, and the app sits abandoned in a folder. If you have ever watched a 40-day streak turn to zero because of one missed evening, you know exactly how demoralising that design is.</p>
+  <p>HabitForge was built on a different idea: a <strong>streak habit tracker</strong> should measure the life you actually live, not punish you for being human. That means supporting weekly frequencies like "exercise 3x per week" instead of forcing a daily check-in, tracking measurable numeric goals like "read 20 pages" instead of a vague yes/no, giving you <strong>streak freeze days</strong> for rest and travel, and letting you link habits together with habit stacking. It is a <strong>habit tracker app free</strong> of accounts, subscriptions, and guilt — a <strong>habit tracker no signup</strong> required, where your data never leaves your browser.</p>
+
+  <h2>Weekly Frequencies: The "3x Per Week" Advantage</h2>
+  <p>Research on habit formation consistently shows that consistency beats intensity, but consistency does not have to mean daily. Many worthwhile habits — strength training, deep work sessions, calling your parents — are best done a few times a week, not every single day. A tracker that only understands daily checkmarks forces you into an all-or-nothing frame: either you are "on" every day or you have failed.</p>
+  <p>HabitForge treats a Monday-to-Sunday window as the unit of success for frequency habits. Set "Gym" to 3x per week and log any three days; the week counts as a win and your weekly streak grows. The app shows a row of week dots so you can see at a glance which days are banked and how many sessions remain before Sunday. This design has a psychological advantage: a missed Monday is a scheduling problem to solve, not a moral failure. You still have six days to hit your target, and the streak survives.</p>
+  <p>Week-window streaks also match how professionals plan their lives. Calendars run Monday to Sunday, work weeks have natural rhythms, and weekends have different energy. When your tracker aligns with that rhythm, checking in feels natural instead of forced. Over a year, someone who hits 3x per week for 40 weeks has built a far stronger identity as "someone who exercises" than someone who sprinted daily for three weeks and quit.</p>
+
+  <h3>Numeric Goals With Progress Rings</h3>
+  <p>Not every habit is a yes-or-no question. "Read more" is vague; "read 20 pages a day" is a goal you can see. "Drink water" is a wish; "drink 8 glasses" is a target. HabitForge lets you create numeric habits with a target value, a unit, and a per-day or per-week scope. Each log adds an amount — 20 pages, 30 minutes, 2 litres — and the progress ring fills in real time: 15 of 20 pages is 75%, and the ring shows it visually the moment you log.</p>
+  <p>Progress rings matter because partial progress is still progress. In a binary tracker, reading 15 pages when your goal was 20 registers as a failure. In HabitForge it registers as 75% — close, visible, and motivating. The ring turns an abstract number into something you can feel, and "just 5 more pages to close the ring" is a surprisingly powerful nudge at 10pm.</p>
+
+  <h2>Streak Freezes: Rest Without Ruin</h2>
+  <p>Every serious athlete schedules rest days. Every productive person takes vacations. Yet traditional streak trackers treat a planned rest day exactly like laziness: a broken chain, a reset to zero. HabitForge's streak freeze solves this with one tap. Freeze a day and it becomes a neutral day — it does not grow your streak, but it does not break it either. Travel, illness, family emergencies, and deliberate recovery all become what they should be: part of the plan, not a failure of the plan.</p>
+  <p>Frozen days also count toward your weekly frequency target. If you freeze Friday and already trained Monday and Wednesday, a 3x-per-week habit still completes its week — the freeze acts as a credited, excused day. On the full-year calendar, freeze days show as sky-blue rings, so months later you can distinguish "I rested on purpose" from "I fell off." That distinction is honest data, and honest data is what lets you improve.</p>
+  <p>Use freezes deliberately, not as an excuse hatch. A good rule of thumb: pre-freeze travel days and one weekly rest day, but never freeze a day retroactively just to avoid seeing a miss. The calendar is for your eyes only — there is no one to impress, so let the data be true.</p>
+
+  <h2>Habit Stacking: Link Habits Into Chains</h2>
+  <p>Habit stacking is the technique of attaching a new habit to an established one: "after I pour my morning coffee, I will meditate for two minutes." The existing habit becomes the trigger, which removes the hardest part of any new habit — remembering to start. HabitForge bakes this in: when you create a habit, you can stack it after any existing habit. Each card shows its stack link ("🔗 after Morning coffee"), turning your list into visible chains instead of isolated tasks.</p>
+  <p>Build stacks of two or three habits maximum. Long chains are brittle — if the anchor habit slips, the whole chain wobbles. A classic starter stack: existing morning routine → one glass of water → five minutes of journaling → make the bed. Each link takes under five minutes, and each completion hands momentum to the next.</p>
+
+  <h2>The Full-Year Calendar: See Your Real Pattern</h2>
+  <p>Most trackers show you this week and hide the rest. That is a mistake, because habit data becomes interesting at scale. HabitForge's full-year calendar renders all twelve months with heat-style shading: pale for quiet days, deep green for days with three or more completions, blue rings for freezes. Patterns jump out immediately — the January burst, the March dip, the September comeback.</p>
+  <p>This long view changes how you judge yourself. A "bad month" that still contains 12 workout days is not a failure; it is a slower month. A year view also reveals environmental triggers: notice you always skip the week of a big work deadline, and you can pre-freeze those days next time instead of pretending it will not happen. The calendar is filterable per habit, so you can audit one behaviour at a time or admire the whole mosaic.</p>
+
+  <h3>Your Data Stays Yours: JSON Export and Import</h3>
+  <p>HabitForge is a <strong>habit tracker no signup</strong> needed — there is no account because there is no server. Everything is stored in your browser's localStorage, which means it works offline and no company can mine your routines. The trade-off of browser storage is that clearing site data would erase your history, which is why HabitForge includes one-tap JSON export. Download your habits, logs, and freeze days as a single file, keep it anywhere, and import it back on any device or browser. Your years of streak data are never locked in.</p>
+
+  <h2>How to Use HabitForge: A Practical Setup Guide</h2>
+  <ol>
+    <li><strong>Start with three habits, not ten.</strong> One daily checkmark (e.g. make the bed), one weekly frequency (e.g. exercise 3x per week), one numeric goal (e.g. read 20 pages a day). Three habits teach you the system without overwhelming you.</li>
+    <li><strong>Set frequencies honestly.</strong> If you have never exercised regularly, 2x per week beats an aspirational 5x that dies in week two. You can raise the frequency later once the streak is alive.</li>
+    <li><strong>Make numeric targets small.</strong> Twenty pages, ten minutes of meditation, one litre of water before noon. Small targets get logged; heroic targets get avoided.</li>
+    <li><strong>Stack one new habit onto a rock-solid old one.</strong> Attach the fragile new behaviour to something you already do without thinking.</li>
+    <li><strong>Pre-freeze your rest days.</strong> Decide your weekly rest day in advance and freeze it. Planned rest protects the streak; unplanned rest should too, so freeze travel days the moment you book them.</li>
+    <li><strong>Check the year view monthly.</strong> On the first of each month, open the calendar and look for patterns. Adjust frequencies up or down based on evidence, not mood.</li>
+    <li><strong>Export your data monthly.</strong> It takes ten seconds and guarantees your history survives any browser mishap.</li>
+  </ol>
+
+  <h2>Comparison: What Most Trackers Lack</h2>
+  <table>
+    <tr><th>Feature</th><th>Typical free tracker</th><th>HabitForge</th></tr>
+    <tr><td>Weekly frequencies ("3x/week")</td><td>Rare or paywalled</td><td>Core feature, week-window streaks</td></tr>
+    <tr><td>Numeric goals with progress</td><td>Binary checkmarks only</td><td>Targets with live progress rings</td></tr>
+    <tr><td>Streak freezes</td><td>Usually a premium perk</td><td>Unlimited, one tap</td></tr>
+    <tr><td>Habit stacking links</td><td>Not modelled</td><td>Built-in stack field</td></tr>
+    <tr><td>Full-year calendar</td><td>Last 30 days at best</td><td>All 12 months, filterable</td></tr>
+    <tr><td>Data export</td><td>Account-locked</td><td>Open JSON, no account</td></tr>
+    <tr><td>Signup required</td><td>Almost always</td><td>Never</td></tr>
+  </table>
+
+  <h2>The Science in Plain Words</h2>
+  <p>Habit research suggests new behaviours take weeks to months to become automatic, and that missing a single day does not measurably harm the process — what matters is the overall pattern. That finding is the entire design philosophy of this <strong>streak habit tracker</strong>: protect the pattern, forgive the day. Weekly frequencies encode the finding directly into the product. Streak freezes encode self-compassion into the product. Progress rings encode the "don't break the chain, bend it" mindset for measurable goals.</p>
+  <p>You do not need another app that makes you feel bad. You need a <strong>habit tracker app free</strong> from manipulation — no streak-shaming, no paywalled basics, no dark patterns. Forge a few small habits, freeze your rest days without guilt, watch the year fill in, and let the compound effect do the rest.</p>
+
+  <h2>Frequently Asked Questions</h2>
+  <details class="faq">
+    <summary>Is HabitForge really a free habit tracker app with no signup?</summary>
+    <div class="faq-body">Yes. HabitForge is a habit tracker app free forever — no accounts, no subscriptions, no premium tier hiding basic features. Everything runs in your browser and your data is stored in localStorage on your own device. There is no server, no login screen, and nothing to pay for.</div>
+  </details>
+  <details class="faq">
+    <summary>How do weekly frequencies like "3x per week" work?</summary>
+    <div class="faq-body">Choose the "X times per week" tracking style and set your number, for example 3. Each week runs Monday to Sunday. Log any three days within the window and the week counts as complete, extending your weekly streak. The app shows seven week-dots per habit so you can see exactly how many sessions are banked and how many remain.</div>
+  </details>
+  <details class="faq">
+    <summary>What is a streak freeze day?</summary>
+    <div class="faq-body">A streak freeze marks a day as a planned rest day. Frozen days do not grow your streak, but they do not break it either — they are simply skipped in streak calculations. Freezes also count as credited days toward weekly frequency targets, and they appear as blue rings on the full-year calendar so you can tell planned rest apart from missed days.</div>
+  </details>
+  <details class="faq">
+    <summary>Can I track numeric goals like "read 20 pages"?</summary>
+    <div class="faq-body">Yes. Create a habit with the numeric-goal style, set a target value and unit (pages, minutes, litres, kilometres — anything), and choose a per-day or per-week scope. Every time you log an amount, the progress ring fills: logging 15 of 20 pages shows 75%. The ring turns red-to-green motivation into a single glanceable number.</div>
+  </details>
+  <details class="faq">
+    <summary>What is habit stacking and how do I use it here?</summary>
+    <div class="faq-body">Habit stacking means attaching a new habit to an existing one — "after I do X, I will do Y" — so the old habit triggers the new one. In HabitForge, pick any existing habit in the "Stack after" dropdown when creating a habit. The card then shows a chain link like "after Morning coffee", turning your habit list into connected routines instead of isolated tasks.</div>
+  </details>
+  <details class="faq">
+    <summary>How do I back up or move my habit data?</summary>
+    <div class="faq-body">Open the Backup panel and click Export JSON to download a file containing all your habits, logs, and freeze days. Paste that file's contents (or upload the file) into the Import box on any device or browser to restore everything. Because there is no account, this export file is the only copy outside your browser — download it monthly to be safe.</div>
+  </details>
+</article>
+
+<!-- Footer -->
+<footer class="border-t" style="border-color:#e3edc9; background:#f1f8df;">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <svg width="26" height="26" viewBox="0 0 36 36" aria-hidden="true">
+        <rect x="3" y="3" width="30" height="30" rx="9" fill="#65a30d"/>
+        <path d="M11 23l4-9 3 6 3-4 4 7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="25.5" cy="11.5" r="2.6" fill="#0ea5e9"/>
+      </svg>
+      <span class="font-extrabold">Habit<span style="color:#65a30d">Forge</span></span>
+    </div>
+    <nav class="flex items-center gap-5 text-sm font-bold">
+      <a href="#top" class="hover:text-[#0ea5e9]">Home</a>
+      <a href="https://fixoraa.tech" class="hover:text-[#0ea5e9]">More Tools</a>
+    </nav>
+    <p class="text-xs text-[#5b6b3f] font-medium">Your habits never leave this browser. Forge on. 🔨</p>
+  </div>
+</footer>
+
+<!-- Inlined pure logic lib -->
+<script id="v3-habitforge-habit-tracker-lib">
+/* HabitForge pure logic — weekly-frequency habit tracker with numeric goals,
+ * streak freezes, habit stacking, and full-year calendar support.
+ * Pure functions only: no document/window access, no DOM, no network.
+ * Dates are ISO keys 'YYYY-MM-DD'; all calendar math runs in UTC so results
+ * are deterministic regardless of the viewer's timezone. Week = Monday..Sunday.
+ */
+var HabitForge = (function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------ */
+  /* Small helpers                                                      */
+  /* ------------------------------------------------------------------ */
+
+  function num(v, fallback) {
+    var n = Number(v);
+    return (isFinite(n) ? n : fallback);
+  }
+
+  function cleanStr(s) {
+    return (s === null || s === undefined) ? '' : String(s).trim();
+  }
+
+  function uid(prefix) {
+    return prefix + '-' + Date.now().toString(36) + '-' +
+      Math.floor(Math.random() * 1e9).toString(36);
+  }
+
+  function clamp(n, lo, hi) {
+    var x = num(n, lo);
+    if (x < lo) return lo;
+    if (x > hi) return hi;
+    return x;
+  }
+
+  function round1(n) {
+    return Math.round((n + 1e-9) * 10) / 10;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Date keys (UTC-based, deterministic)                               */
+  /* ------------------------------------------------------------------ */
+
+  var KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+  // 'YYYY-MM-DD' -> Date at UTC midnight, or null when invalid.
+  function keyToDate(key) {
+    var k = cleanStr(key);
+    if (!KEY_RE.test(k)) return null;
+    var parts = k.split('-');
+    var d = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])));
+    if (isNaN(d.getTime())) return null;
+    // Guard against overflow roll-over (e.g. 2026-13-99).
+    if (dateToKey(d) !== k) return null;
+    return d;
+  }
+
+  function isValidKey(key) {
+    return keyToDate(cleanStr(key)) !== null;
+  }
+
+  function pad2(n) {
+    return (n < 10 ? '0' : '') + n;
+  }
+
+  // Date -> 'YYYY-MM-DD' (UTC getters).
+  function dateToKey(d) {
+    if (!(d instanceof Date) || isNaN(d.getTime())) return null;
+    return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+  }
+
+  // Today's date key in the viewer's local calendar. (Uses new Date only —
+  // no document/window. UI code prefers passing an explicit key; tests do.)
+  function todayKey() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  // Add n days to a key. Invalid key -> null.
+  function addDays(key, n) {
+    var d = keyToDate(key);
+    if (!d) return null;
+    var nn = Math.round(num(n, 0));
+    return dateToKey(new Date(d.getTime() + nn * 86400000));
+  }
+
+  // Whole days between a and b (b - a). Invalid -> null.
+  function diffDays(a, b) {
+    var da = keyToDate(a), db = keyToDate(b);
+    if (!da || !db) return null;
+    return Math.round((db.getTime() - da.getTime()) / 86400000);
+  }
+
+  // Monday of the ISO week containing key. Invalid -> null.
+  function weekStartKey(key) {
+    var d = keyToDate(key);
+    if (!d) return null;
+    var dow = d.getUTCDay(); // 0=Sun..6=Sat
+    var back = (dow + 6) % 7; // days since Monday
+    return dateToKey(new Date(d.getTime() - back * 86400000));
+  }
+
+  // The 7 keys Mon..Sun of the week containing key. Invalid -> [].
+  function weekDates(key) {
+    var ws = weekStartKey(key);
+    if (!ws) return [];
+    var out = [];
+    for (var i = 0; i < 7; i++) out.push(addDays(ws, i));
+    return out;
+  }
+
+  // Monday..Sunday keys for the week that starts exactly at startKey.
+  // startKey must itself be a Monday; invalid/not-Monday -> [].
+  function weekDatesFromStart(startKey) {
+    var d = keyToDate(startKey);
+    if (!d || d.getUTCDay() !== 1) return [];
+    var out = [];
+    for (var i = 0; i < 7; i++) out.push(dateToKey(new Date(d.getTime() + i * 86400000)));
+    return out;
+  }
+
+  var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+
+  // 42 date keys (6 weeks x 7 days, weeks start Monday) covering a month.
+  // Out-of-month days are included (calendar-style). Bad input -> [].
+  function monthGrid(year, month) {
+    var y = Math.floor(num(year, NaN)), m = Math.floor(num(month, NaN));
+    if (!isFinite(y) || !isFinite(m) || m < 1 || m > 12) return [];
+    var first = new Date(Date.UTC(y, m - 1, 1));
+    var dow = first.getUTCDay();
+    var back = (dow + 6) % 7;
+    var start = new Date(first.getTime() - back * 86400000);
+    var out = [];
+    for (var i = 0; i < 42; i++) out.push(dateToKey(new Date(start.getTime() + i * 86400000)));
+    return out;
+  }
+
+  // All 12 months of a year: [{ year, month, name, grid }].
+  function yearMonths(year) {
+    var y = Math.floor(num(year, NaN));
+    if (!isFinite(y) || y < 1 || y > 9999) return [];
+    var out = [];
+    for (var m = 1; m <= 12; m++) {
+      out.push({ year: y, month: m, name: MONTH_NAMES[m - 1], grid: monthGrid(y, m) });
+    }
+    return out;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Habits                                                             */
+  /* ------------------------------------------------------------------ */
+
+  var HABIT_TYPES = ['check', 'freq', 'numeric'];
+  var SCOPES = ['day', 'week'];
+  var DEFAULT_COLORS = ['#65a30d', '#0ea5e9', '#f59e0b', '#ec4899', '#8b5cf6', '#ef4444', '#14b8a6'];
+
+  // Validate & normalize a habit record. Returns null when invalid.
+  // Shape: { id, name, emoji, color, type, freqPerWeek, targetValue,
+  //          targetUnit, targetScope, stacksWith, createdKey }
+  function normalizeHabit(raw) {
+    if (!raw) return null;
+    var name = cleanStr(raw.name).slice(0, 60);
+    if (!name) return null;
+    var type = HABIT_TYPES.indexOf(raw.type) >= 0 ? raw.type : 'check';
+    var color = /^#[0-9a-fA-F]{6}$/.test(cleanStr(raw.color)) ? cleanStr(raw.color) : DEFAULT_COLORS[0];
+    var freqPerWeek = clamp(Math.floor(num(raw.freqPerWeek, 3)), 1, 7);
+    var targetValue = num(raw.targetValue, 0);
+    targetValue = targetValue > 0 ? round1(targetValue) : 0;
+    var scope = SCOPES.indexOf(raw.targetScope) >= 0 ? raw.targetScope : 'day';
+    var stacksWith = cleanStr(raw.stacksWith);
+    var createdKey = isValidKey(raw.createdKey) ? raw.createdKey : null;
+    var habit = {
+      id: cleanStr(raw.id) || uid('h'),
+      name: name,
+      emoji: cleanStr(raw.emoji).slice(0, 4) || '✅',
+      color: color,
+      type: type,
+      freqPerWeek: type === 'freq' ? freqPerWeek : 3,
+      targetValue: type === 'numeric' && targetValue > 0 ? targetValue : (type === 'numeric' ? 1 : 0),
+      targetUnit: cleanStr(raw.targetUnit).slice(0, 20) || 'units',
+      targetScope: type === 'numeric' ? scope : 'day',
+      stacksWith: stacksWith || null,
+      createdKey: createdKey
+    };
+    return habit;
+  }
+
+  // Append a habit. Never mutates the input array.
+  function addHabit(habits, raw) {
+    var list = Array.isArray(habits) ? habits.slice() : [];
+    var h = normalizeHabit(raw);
+    if (!h) return { habits: list, ok: false, error: 'invalid-habit', habit: null };
+    var dup = list.some(function (x) { return x && x.id === h.id; });
+    if (dup) h.id = uid('h');
+    list.push(h);
+    return { habits: list, ok: true, error: null, habit: h };
+  }
+
+  function getHabit(habits, id) {
+    var list = Array.isArray(habits) ? habits : [];
+    var key = cleanStr(id);
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id === key) return list[i];
+    }
+    return null;
+  }
+
+  // Remove a habit and purge its logs. Returns { habits, logs, removed }.
+  function removeHabit(habits, logs, id) {
+    var list = Array.isArray(habits) ? habits : [];
+    var logsArr = Array.isArray(logs) ? logs : [];
+    var key = cleanStr(id);
+    var removed = false;
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id === key && key) { removed = true; continue; }
+      out.push(list[i]);
+    }
+    var logsOut = [];
+    for (var j = 0; j < logsArr.length; j++) {
+      if (logsArr[j] && logsArr[j].habitId === key && key) continue;
+      logsOut.push(logsArr[j]);
+    }
+    // Clear dangling stack links.
+    for (var k = 0; k < out.length; k++) {
+      if (out[k] && out[k].stacksWith === key) out[k] = Object.assign({}, out[k], { stacksWith: null });
+    }
+    return { habits: out, logs: logsOut, removed: removed };
+  }
+
+  // Patch a habit (name, emoji, color, type-related fields, stacksWith).
+  // Type changes are applied via normalizeHabit on the merged object.
+  function updateHabit(habits, id, patch) {
+    var list = Array.isArray(habits) ? habits.slice() : [];
+    var key = cleanStr(id);
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id === key) {
+        var merged = Object.assign({}, list[i], patch || {}, { id: key });
+        var h = normalizeHabit(merged);
+        if (!h) return { habits: list, ok: false, error: 'invalid-patch' };
+        list[i] = h;
+        return { habits: list, ok: true, error: null };
+      }
+    }
+    return { habits: list, ok: false, error: 'not-found' };
+  }
+
+  // The habit this habit stacks onto (its "anchor"), or null.
+  function stackAnchor(habits, habit) {
+    if (!habit || !habit.stacksWith) return null;
+    return getHabit(habits, habit.stacksWith);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Logs                                                               */
+  /* ------------------------------------------------------------------ */
+
+  // Validate & normalize one log entry. Returns null when invalid.
+  // Shape: { id, habitId, date, value }
+  function normalizeLog(raw) {
+    if (!raw) return null;
+    var habitId = cleanStr(raw.habitId);
+    var date = cleanStr(raw.date);
+    if (!habitId || !isValidKey(date)) return null;
+    var value = num(raw.value, NaN);
+    if (!isFinite(value) || value < 0) return null;
+    return {
+      id: cleanStr(raw.id) || uid('l'),
+      habitId: habitId,
+      date: date,
+      value: round1(value)
+    };
+  }
+
+  // Logs for one habit (array, unsorted-safe copy).
+  function logsForHabit(logs, habitId) {
+    var list = Array.isArray(logs) ? logs : [];
+    var key = cleanStr(habitId);
+    return list.filter(function (l) { return l && l.habitId === key; });
+  }
+
+  // Map of dateKey -> true for one habit's logged days.
+  function habitDateSet(logs, habitId) {
+    var set = {};
+    var hl = logsForHabit(logs, habitId);
+    for (var i = 0; i < hl.length; i++) set[hl[i].date] = true;
+    return set;
+  }
+
+  // Toggle a check/freq log for habit+date: adds when absent, removes when
+  // present. Returns { logs, action: 'added'|'removed'|'error', entry }.
+  function logDay(logs, habits, habitId, dateKey) {
+    var list = Array.isArray(logs) ? logs.slice() : [];
+    var h = getHabit(habits, habitId);
+    if (!h) return { logs: list, action: 'error', entry: null, error: 'unknown-habit' };
+    if (!isValidKey(dateKey)) return { logs: list, action: 'error', entry: null, error: 'bad-date' };
+    var key = cleanStr(habitId);
+    for (var i = 0; i < list.length; i++) {
+      var l = list[i];
+      if (l && l.habitId === key && l.date === dateKey && h.type !== 'numeric') {
+        list.splice(i, 1);
+        return { logs: list, action: 'removed', entry: null, error: null };
+      }
+    }
+    var entry = normalizeLog({ habitId: key, date: dateKey, value: 1 });
+    list.push(entry);
+    return { logs: list, action: 'added', entry: entry, error: null };
+  }
+
+  // Append a numeric amount for habit+date (numeric habits only).
+  // Returns { logs, ok, error, entry }.
+  function logNumeric(logs, habits, habitId, dateKey, amount) {
+    var list = Array.isArray(logs) ? logs.slice() : [];
+    var h = getHabit(habits, habitId);
+    if (!h) return { logs: list, ok: false, error: 'unknown-habit', entry: null };
+    if (h.type !== 'numeric') return { logs: list, ok: false, error: 'not-numeric', entry: null };
+    if (!isValidKey(dateKey)) return { logs: list, ok: false, error: 'bad-date', entry: null };
+    var amt = num(amount, NaN);
+    if (!isFinite(amt) || amt <= 0) return { logs: list, ok: false, error: 'bad-amount', entry: null };
+    var entry = normalizeLog({ habitId: h.id, date: dateKey, value: amt });
+    list.push(entry);
+    return { logs: list, ok: true, error: null, entry: entry };
+  }
+
+  // Sum of numeric values for habit on one day.
+  function dayTotal(logs, habitId, dateKey) {
+    var hl = logsForHabit(logs, habitId);
+    var sum = 0;
+    for (var i = 0; i < hl.length; i++) {
+      if (hl[i].date === dateKey) sum += num(hl[i].value, 0);
+    }
+    return round1(sum);
+  }
+
+  // Sum of numeric values for habit across a set of date keys.
+  function rangeTotal(logs, habitId, keys) {
+    var set = {};
+    for (var i = 0; i < keys.length; i++) set[keys[i]] = true;
+    var hl = logsForHabit(logs, habitId);
+    var sum = 0;
+    for (var j = 0; j < hl.length; j++) {
+      if (set[hl[j].date]) sum += num(hl[j].value, 0);
+    }
+    return round1(sum);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Streak freezes                                                     */
+  /* ------------------------------------------------------------------ */
+
+  // freezes: array of date keys. Toggle one day. Returns { freezes, frozen }.
+  function toggleFreeze(freezes, dateKey) {
+    var list = Array.isArray(freezes) ? freezes.slice() : [];
+    var k = cleanStr(dateKey);
+    var out = [];
+    var wasFrozen = false;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] === k && isValidKey(k)) { wasFrozen = true; continue; }
+      out.push(list[i]);
+    }
+    if (!wasFrozen && isValidKey(k)) out.push(k);
+    return { freezes: out, frozen: !wasFrozen && isValidKey(k) };
+  }
+
+  function freezeSet(freezes) {
+    var set = {};
+    var list = Array.isArray(freezes) ? freezes : [];
+    for (var i = 0; i < list.length; i++) {
+      if (isValidKey(list[i])) set[list[i]] = true;
+    }
+    return set;
+  }
+
+  function isFrozen(freezes, dateKey) {
+    return !!freezeSet(freezes)[cleanStr(dateKey)];
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Streaks                                                            */
+  /* ------------------------------------------------------------------ */
+
+  // State of one day for streak purposes: 'future' | 'done' | 'frozen' | 'missed'.
+  // (freq/numeric habits are evaluated week-wise; this is for daily check habits.)
+  function dayState(logs, habit, freezes, dateKey, today) {
+    var k = cleanStr(dateKey);
+    if (!isValidKey(k) || !isValidKey(today)) return 'missed';
+    if (k > today) return 'future';
+    var dates = habitDateSet(logs, habit ? habit.id : null);
+    if (dates[k]) return 'done';
+    if (isFrozen(freezes, k)) return 'frozen';
+    return 'missed';
+  }
+
+  // Daily streak for a 'check' habit. Frozen days are skipped (they preserve
+  // the streak without growing it); a miss breaks the run. If today is missed
+  // the run starts from yesterday.
+  function dailyStreak(logs, habit, freezes, today) {
+    if (!habit || !isValidKey(today)) return 0;
+    var created = habit.createdKey;
+    var cur = cleanStr(today);
+    var st = dayState(logs, habit, freezes, cur, cur);
+    if (st === 'missed') cur = addDays(cur, -1);
+    var s = 0;
+    var guard = 0;
+    while (cur && guard < 3700) {
+      guard++;
+      if (created && cur < created) break;
+      var state = dayState(logs, habit, freezes, cur, today);
+      if (state === 'done') { s++; cur = addDays(cur, -1); }
+      else if (state === 'frozen') { cur = addDays(cur, -1); }
+      else break;
+    }
+    return s;
+  }
+
+  // Best (longest) daily streak ever recorded for a 'check' habit.
+  function bestDailyStreak(logs, habit, freezes, today) {
+    if (!habit || !isValidKey(today)) return 0;
+    var created = habit.createdKey;
+    var dates = habitDateSet(logs, habit.id);
+    var fset = freezeSet(freezes);
+    var start = created && isValidKey(created) ? created : null;
+    if (!start) {
+      var keys = Object.keys(dates).sort();
+      start = keys.length ? keys[0] : today;
+    }
+    if (start > today) return 0;
+    var best = 0, run = 0, cur = start, guard = 0;
+    while (cur && cur <= today && guard < 3700) {
+      guard++;
+      var state;
+      if (dates[cur]) state = 'done';
+      else if (fset[cur]) state = 'frozen';
+      else state = 'missed';
+      if (state === 'done') { run++; if (run > best) best = run; }
+      else if (state === 'frozen') { /* preserved, run unchanged */ }
+      else run = 0;
+      cur = addDays(cur, 1);
+    }
+    return best;
+  }
+
+  // Logs + frozen days credited in the week starting at weekStart (Monday).
+  // Future days of the current week do not count yet; frozen days count as
+  // completed (an excused, credited day).
+  function freqWeekCount(logs, habit, freezes, weekStart, today) {
+    var ds = weekDatesFromStart(weekStart);
+    if (!ds.length || !habit) return 0;
+    var dates = habitDateSet(logs, habit.id);
+    var fset = freezeSet(freezes);
+    var n = 0;
+    for (var i = 0; i < ds.length; i++) {
+      var k = ds[i];
+      if (today && k > today && !fset[k]) continue;
+      if (dates[k] || fset[k]) n++;
+    }
+    return n;
+  }
+
+  // Consecutive met weeks for a 'freq' habit, walking back from today.
+  // The current week never breaks the streak: if it is already met it counts,
+  // otherwise the run starts from last week.
+  function weeklyStreak(logs, habit, freezes, today) {
+    if (!habit || !isValidKey(today)) return 0;
+    var needed = clamp(Math.floor(num(habit.freqPerWeek, 1)), 1, 7);
+    var ws = weekStartKey(today);
+    if (weekMet(ws)) {
+      return 1 + priorMetWeeks(addDays(ws, -7));
+    }
+    return priorMetWeeks(addDays(ws, -7));
+
+    function weekMet(w) {
+      return freqWeekCount(logs, habit, freezes, w, today) >= needed;
+    }
+    function priorMetWeeks(w) {
+      var s = 0, guard = 0;
+      while (w && guard < 520) {
+        guard++;
+        if (weekMet(w)) { s++; w = addDays(w, -7); }
+        else break;
+      }
+      return s;
+    }
+  }
+
+  // Best weekly streak ever for a 'freq' habit (weeks since creation).
+  function bestWeeklyStreak(logs, habit, freezes, today) {
+    if (!habit || !isValidKey(today)) return 0;
+    var needed = clamp(Math.floor(num(habit.freqPerWeek, 1)), 1, 7);
+    var start = habit.createdKey && isValidKey(habit.createdKey) ? habit.createdKey : null;
+    if (!start) {
+      var dates = habitDateSet(logs, habit.id);
+      var keys = Object.keys(dates).sort();
+      start = keys.length ? keys[0] : today;
+    }
+    var ws = weekStartKey(start);
+    var curWeek = weekStartKey(today);
+    var best = 0, run = 0, w = ws, guard = 0;
+    while (w && w <= curWeek && guard < 520) {
+      guard++;
+      var end = addDays(w, 6);
+      var evalToday = end > today ? today : end; // cap at week end for past weeks
+      var count = freqWeekCount(logs, habit, freezes, w, evalToday);
+      // The in-progress current week counts only when already met.
+      if (w === curWeek && count < needed) { w = addDays(w, 7); continue; }
+      if (count >= needed) { run++; if (run > best) best = run; }
+      else run = 0;
+      w = addDays(w, 7);
+    }
+    return best;
+  }
+
+  // Streak dispatch by habit type.
+  function streakFor(logs, habit, freezes, today) {
+    if (!habit) return 0;
+    if (habit.type === 'freq') return weeklyStreak(logs, habit, freezes, today);
+    if (habit.type === 'numeric') return dailyStreak(logs, habit, freezes, today);
+    return dailyStreak(logs, habit, freezes, today);
+  }
+
+  function bestStreakFor(logs, habit, freezes, today) {
+    if (!habit) return 0;
+    if (habit.type === 'freq') return bestWeeklyStreak(logs, habit, freezes, today);
+    return bestDailyStreak(logs, habit, freezes, today);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Weekly frequency progress                                          */
+  /* ------------------------------------------------------------------ */
+
+  // { count, needed, pct (0..100), met, daysLeft, weekStart }
+  function freqWeekProgress(logs, habit, freezes, today) {
+    var needed = clamp(Math.floor(num(habit ? habit.freqPerWeek : 1, 1)), 1, 7);
+    var ws = weekStartKey(today);
+    var count = freqWeekCount(logs, habit, freezes, ws, today);
+    var weekEnd = addDays(ws, 6);
+    var daysLeft = 0;
+    for (var i = 0; i < 7; i++) {
+      var k = addDays(ws, i);
+      if (k >= today && k <= weekEnd) daysLeft++;
+    }
+    return {
+      count: count,
+      needed: needed,
+      pct: needed ? round1(clamp((count / needed) * 100, 0, 100)) : 0,
+      met: count >= needed,
+      daysLeft: daysLeft,
+      weekStart: ws
+    };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Numeric goals + progress-ring math                                 */
+  /* ------------------------------------------------------------------ */
+
+  // Numeric progress for a habit. scope 'day' sums today, 'week' sums the
+  // week containing today. Returns { total, target, pct, done, unit, scope }.
+  function numericProgress(logs, habit, today) {
+    if (!habit || habit.type !== 'numeric') return { total: 0, target: 0, pct: 0, done: false, unit: '', scope: 'day' };
+    var target = num(habit.targetValue, 0);
+    var scope = habit.targetScope === 'week' ? 'week' : 'day';
+    var total = scope === 'week'
+      ? rangeTotal(logs, habit.id, weekDates(today))
+      : dayTotal(logs, habit.id, today);
+    var pct = target > 0 ? clamp((total / target) * 100, 0, 100) : 0;
+    return {
+      total: total,
+      target: target,
+      pct: round1(pct),
+      done: target > 0 && total >= target,
+      unit: cleanStr(habit.targetUnit) || 'units',
+      scope: scope
+    };
+  }
+
+  // Progress-ring geometry for an SVG circle of radius r:
+  // { pct, circumference, dash, gap } -> stroke-dasharray = "dash gap".
+  function progressRing(pct, radius) {
+    var p = clamp(num(pct, 0), 0, 100);
+    var r = num(radius, 0);
+    if (r <= 0) return { pct: round1(p), circumference: 0, dash: 0, gap: 0 };
+    var c = 2 * Math.PI * r;
+    var dash = (p / 100) * c;
+    return {
+      pct: round1(p),
+      circumference: round1(c * 100) / 100,
+      dash: round1(dash * 100) / 100,
+      gap: round1((c - dash) * 100) / 100
+    };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Calendar activity map                                              */
+  /* ------------------------------------------------------------------ */
+
+  // For a full year: map of dateKey -> { count, frozen }.
+  // habitId optional: restrict to one habit, otherwise all habits.
+  function yearActivity(logs, freezes, year, habitId) {
+    var map = {};
+    var list = Array.isArray(logs) ? logs : [];
+    var prefix = String(Math.floor(num(year, 0))) + '-';
+    var key = cleanStr(habitId);
+    for (var i = 0; i < list.length; i++) {
+      var l = list[i];
+      if (!l || !l.date || l.date.indexOf(prefix) !== 0) continue;
+      if (key && l.habitId !== key) continue;
+      if (!map[l.date]) map[l.date] = { count: 0, frozen: false };
+      map[l.date].count += 1;
+    }
+    var fset = freezeSet(freezes);
+    for (var k in fset) {
+      if (Object.prototype.hasOwnProperty.call(fset, k) && k.indexOf(prefix) === 0) {
+        if (!map[k]) map[k] = { count: 0, frozen: false };
+        map[k].frozen = true;
+      }
+    }
+    return map;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* JSON export / import                                               */
+  /* ------------------------------------------------------------------ */
+
+  // Build a versioned export payload as a pretty JSON string.
+  function exportJSON(habits, logs, freezes) {
+    var payload = {
+      app: 'habitforge',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      habits: Array.isArray(habits) ? habits : [],
+      logs: Array.isArray(logs) ? logs : [],
+      freezes: Array.isArray(freezes) ? freezes : []
+    };
+    return JSON.stringify(payload, null, 2);
+  }
+
+  // Validate & import an export payload.
+  // Returns { ok, error, habits, logs, freezes, skipped }.
+  function importJSON(text) {
+    var empty = { ok: false, error: 'empty', habits: [], logs: [], freezes: [], skipped: 0 };
+    var raw = cleanStr(text);
+    if (!raw) return empty;
+    var data;
+    try { data = JSON.parse(raw); } catch (e) { return { ok: false, error: 'invalid-json', habits: [], logs: [], freezes: [], skipped: 0 }; }
+    if (!data || data.app !== 'habitforge' || !Array.isArray(data.habits)) {
+      return { ok: false, error: 'not-habitforge-export', habits: [], logs: [], freezes: [], skipped: 0 };
+    }
+    var skipped = 0;
+    var habits = [];
+    var idSet = {};
+    (data.habits || []).forEach(function (h) {
+      var nh = normalizeHabit(h);
+      if (nh) { habits.push(nh); idSet[nh.id] = true; }
+      else skipped++;
+    });
+    var logs = [];
+    (data.logs || []).forEach(function (l) {
+      var nl = normalizeLog(l);
+      if (nl && idSet[nl.habitId]) logs.push(nl);
+      else skipped++;
+    });
+    var freezes = [];
+    (data.freezes || []).forEach(function (k) {
+      if (isValidKey(k)) freezes.push(cleanStr(k));
+      else skipped++;
+    });
+    return { ok: true, error: null, habits: habits, logs: logs, freezes: freezes, skipped: skipped };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Per-habit dashboard summary                                        */
+  /* ------------------------------------------------------------------ */
+
+  // One object with everything a habit card needs.
+  function habitSummary(logs, habits, habit, freezes, today) {
+    if (!habit) return null;
+    var s = {
+      id: habit.id,
+      name: habit.name,
+      emoji: habit.emoji,
+      color: habit.color,
+      type: habit.type,
+      streak: streakFor(logs, habit, freezes, today),
+      bestStreak: bestStreakFor(logs, habit, freezes, today),
+      todayDone: dayState(logs, habit, freezes, today, today) === 'done',
+      frozenToday: isFrozen(freezes, today),
+      stackName: null,
+      week: null,
+      numeric: null
+    };
+    var anchor = stackAnchor(habits, habit);
+    if (anchor) s.stackName = anchor.name;
+    if (habit.type === 'freq') s.week = freqWeekProgress(logs, habit, freezes, today);
+    if (habit.type === 'numeric') s.numeric = numericProgress(logs, habit, today);
+    return s;
+  }
+
+  function allSummaries(logs, habits, freezes, today) {
+    var list = Array.isArray(habits) ? habits : [];
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var s = habitSummary(logs, list, list[i], freezes, today);
+      if (s) out.push(s);
+    }
+    return out;
+  }
+
+  return {
+    // dates
+    isValidKey: isValidKey,
+    keyToDate: keyToDate,
+    dateToKey: dateToKey,
+    todayKey: todayKey,
+    addDays: addDays,
+    diffDays: diffDays,
+    weekStartKey: weekStartKey,
+    weekDates: weekDates,
+    weekDatesFromStart: weekDatesFromStart,
+    monthGrid: monthGrid,
+    yearMonths: yearMonths,
+    MONTH_NAMES: MONTH_NAMES,
+    DEFAULT_COLORS: DEFAULT_COLORS,
+    // habits
+    normalizeHabit: normalizeHabit,
+    addHabit: addHabit,
+    getHabit: getHabit,
+    removeHabit: removeHabit,
+    updateHabit: updateHabit,
+    stackAnchor: stackAnchor,
+    // logs
+    normalizeLog: normalizeLog,
+    logsForHabit: logsForHabit,
+    habitDateSet: habitDateSet,
+    logDay: logDay,
+    logNumeric: logNumeric,
+    dayTotal: dayTotal,
+    rangeTotal: rangeTotal,
+    // freezes
+    toggleFreeze: toggleFreeze,
+    isFrozen: isFrozen,
+    freezeSet: freezeSet,
+    // streaks
+    dayState: dayState,
+    dailyStreak: dailyStreak,
+    bestDailyStreak: bestDailyStreak,
+    freqWeekCount: freqWeekCount,
+    weeklyStreak: weeklyStreak,
+    bestWeeklyStreak: bestWeeklyStreak,
+    streakFor: streakFor,
+    bestStreakFor: bestStreakFor,
+    // progress
+    freqWeekProgress: freqWeekProgress,
+    numericProgress: numericProgress,
+    progressRing: progressRing,
+    // calendar + export
+    yearActivity: yearActivity,
+    exportJSON: exportJSON,
+    importJSON: importJSON,
+    // dashboard
+    habitSummary: habitSummary,
+    allSummaries: allSummaries
+  };
+})();
+
+</script>
+
+<!-- App (UI wiring — DOM/localStorage only, logic lives in the lib) -->
+<script id="v3-habitforge-habit-tracker-app">
+(function () {
+  'use strict';
+  var HF = HabitForge;
+  var LS_KEY = 'habitforge-v3-v1';
+
+  var state = { habits: [], logs: [], freezes: [] };
+  var selEmoji = '✅';
+  var selColor = '#65a30d';
+  var calYear = new Date().getFullYear();
+  var calHabit = 'all';
+
+  function today() { return HF.todayKey(); }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (data && data.app === 'habitforge') {
+        state.habits = Array.isArray(data.habits) ? data.habits : [];
+        state.logs = Array.isArray(data.logs) ? data.logs : [];
+        state.freezes = Array.isArray(data.freezes) ? data.freezes : [];
+      }
+    } catch (e) { /* corrupted storage -> start fresh */ }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        app: 'habitforge', version: 1, savedAt: new Date().toISOString(),
+        habits: state.habits, logs: state.logs, freezes: state.freezes
+      }));
+    } catch (e) { /* storage full/blocked -> non-fatal */ }
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* ---------------- form ---------------- */
+
+  function wireForm() {
+    var type = document.getElementById('habitType');
+    var freqRow = document.getElementById('freqRow');
+    var numericRow = document.getElementById('numericRow');
+    function syncRows() {
+      freqRow.classList.toggle('hidden', type.value !== 'freq');
+      numericRow.classList.toggle('hidden', type.value !== 'numeric');
+    }
+    type.addEventListener('change', syncRows);
+    syncRows();
+
+    document.getElementById('emojiPicker').addEventListener('click', function (e) {
+      var b = e.target.closest('.emoji-btn');
+      if (!b) return;
+      selEmoji = b.getAttribute('data-emoji');
+      var btns = this.querySelectorAll('.emoji-btn');
+      for (var i = 0; i < btns.length; i++) btns[i].classList.remove('sel');
+      b.classList.add('sel');
+    });
+
+    document.getElementById('colorPicker').addEventListener('click', function (e) {
+      var b = e.target.closest('.color-dot');
+      if (!b) return;
+      selColor = b.getAttribute('data-color');
+      var dots = this.querySelectorAll('.color-dot');
+      for (var i = 0; i < dots.length; i++) dots[i].classList.remove('sel');
+      b.classList.add('sel');
+    });
+
+    document.getElementById('btnAddHabit').addEventListener('click', function () {
+      var name = document.getElementById('habitName').value;
+      var t = document.getElementById('habitType').value;
+      var raw = {
+        name: name, emoji: selEmoji, color: selColor, type: t,
+        freqPerWeek: document.getElementById('habitFreq').value,
+        targetValue: document.getElementById('habitTarget').value,
+        targetUnit: document.getElementById('habitUnit').value,
+        targetScope: document.getElementById('habitScope').value,
+        stacksWith: document.getElementById('habitStack').value || null,
+        createdKey: today()
+      };
+      var res = HF.addHabit(state.habits, raw);
+      if (!res.ok) {
+        alert('Please give your habit a name first.');
+        return;
+      }
+      state.habits = res.habits;
+      document.getElementById('habitName').value = '';
+      save();
+      renderAll();
+    });
+  }
+
+  function renderStackOptions() {
+    var sel = document.getElementById('habitStack');
+    var cur = sel.value;
+    var html = '<option value="">— No stack, standalone habit —</option>';
+    for (var i = 0; i < state.habits.length; i++) {
+      var h = state.habits[i];
+      html += '<option value="' + esc(h.id) + '">' + esc(h.emoji + ' ' + h.name) + '</option>';
+    }
+    sel.innerHTML = html;
+    sel.value = cur || '';
+    var filt = document.getElementById('habitFilter');
+    var fc = filt.value;
+    var fhtml = '<option value="all">All habits</option>';
+    for (var j = 0; j < state.habits.length; j++) {
+      var hh = state.habits[j];
+      fhtml += '<option value="' + esc(hh.id) + '">' + esc(hh.emoji + ' ' + hh.name) + '</option>';
+    }
+    filt.innerHTML = fhtml;
+    filt.value = fc || 'all';
+    calHabit = filt.value;
+  }
+
+  /* ---------------- today list ---------------- */
+
+  function weekDotsHTML(habit, t) {
+    var ws = HF.weekStartKey(t);
+    var ds = HF.weekDatesFromStart(ws);
+    var dates = HF.habitDateSet(state.logs, habit.id);
+    var names = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    var html = '';
+    for (var i = 0; i < ds.length; i++) {
+      var k = ds[i];
+      var cls = 'wdot';
+      var glyph = names[i];
+      if (dates[k]) { cls += ' done'; glyph = '✓'; }
+      else if (HF.isFrozen(state.freezes, k)) { cls += ' frozen'; glyph = '❄'; }
+      if (k === t) cls += ' today';
+      html += '<span class="' + cls + '" title="' + k + '">' + glyph + '</span>';
+    }
+    return html;
+  }
+
+  function ringSVG(pct, color) {
+    var r = 26;
+    var ring = HF.progressRing(pct, r);
+    var c = ring.circumference;
+    return '<svg width="72" height="72" viewBox="0 0 72 72">' +
+      '<circle cx="36" cy="36" r="' + r + '" fill="none" stroke="#eef4dd" stroke-width="8"/>' +
+      '<circle cx="36" cy="36" r="' + r + '" fill="none" stroke="' + esc(color) + '" stroke-width="8" stroke-linecap="round" ' +
+      'stroke-dasharray="' + ring.dash.toFixed(1) + ' ' + ring.gap.toFixed(1) + '" transform="rotate(-90 36 36)"/>' +
+      '<text x="36" y="40" text-anchor="middle" font-size="14" font-weight="800" fill="#1a2e05">' + ring.pct + '%</text></svg>';
+  }
+
+  function cardHTML(s, t) {
+    var habit = HF.getHabit(state.habits, s.id);
+    var stackLine = s.stackName ? '<div class="text-xs font-bold text-[#0284c7] mt-1">🔗 after ' + esc(s.stackName) + '</div>' : '';
+    var frozenTag = s.frozenToday ? '<span class="text-xs font-extrabold text-[#0284c7] bg-[#e0f2fe] rounded-full px-2 py-0.5">❄ frozen</span>' : '';
+    var del = '<button class="text-xs font-bold text-[#b3a48a] hover:text-red-600" data-act="del" data-id="' + esc(s.id) + '">delete</button>';
+    var head = '<div class="flex items-start justify-between gap-2">' +
+      '<div><div class="font-extrabold text-lg leading-tight">' + esc(s.emoji) + ' ' + esc(s.name) + '</div>' + stackLine + '</div>' +
+      '<div class="flex items-center gap-2 flex-none">' + frozenTag + del + '</div></div>';
+    var streakLine = '<div class="flex items-center gap-2 mt-2 flex-wrap">' +
+      '<span class="streak-flame">🔥 ' + s.streak + ' ' + (s.type === 'freq' ? 'wk' : 'day') + '</span>' +
+      '<span class="text-xs font-bold text-[#9db27a]">best ' + s.bestStreak + '</span></div>';
+
+    var body = '';
+    if (s.type === 'check') {
+      body = '<button class="check-toggle mt-3 ' + (s.todayDone ? 'on' : '') + '" data-act="toggle" data-id="' + esc(s.id) + '">' +
+        (s.todayDone ? '✓ Done today — tap to undo' : '○ Mark done for today') + '</button>';
+    } else if (s.type === 'freq' && s.week) {
+      body = '<div class="mt-3"><div class="flex items-center justify-between mb-2">' +
+        '<span class="font-extrabold" style="color:' + esc(s.color) + '">' + s.week.count + ' / ' + s.week.needed + ' this week</span>' +
+        (s.week.met
+          ? '<span class="text-xs font-extrabold text-[#4d7c0f] bg-[#ecfccb] rounded-full px-2.5 py-1">WEEK COMPLETE ✓</span>'
+          : '<span class="text-xs font-bold text-[#5b6b3f]">' + s.week.daysLeft + ' days left</span>') +
+        '</div><div class="flex gap-1.5 mb-3">' + weekDotsHTML(habit, t) + '</div>' +
+        '<button class="check-toggle ' + (s.todayDone ? 'on' : '') + '" data-act="toggle" data-id="' + esc(s.id) + '">' +
+        (s.todayDone ? '✓ Logged today — tap to undo' : '+ Log today') + '</button></div>';
+    } else if (s.type === 'numeric' && s.numeric) {
+      var n = s.numeric;
+      body = '<div class="mt-3 flex items-center gap-4">' + ringSVG(n.pct, s.color) +
+        '<div class="flex-1"><div class="font-extrabold text-lg">' + n.total + ' <span class="text-sm font-bold text-[#5b6b3f]">/ ' + n.target + ' ' + esc(n.unit) + ' ' + (n.scope === 'week' ? 'this week' : 'today') + '</span></div>' +
+        (n.done ? '<div class="text-xs font-extrabold text-[#4d7c0f]">TARGET HIT ✓</div>' : '') +
+        '<div class="flex gap-2 mt-2"><input id="amt-' + esc(s.id) + '" type="number" min="0" step="any" placeholder="Amount" class="field" style="padding:.45rem .7rem">' +
+        '<button class="btn-ghost flex-none" data-act="lognum" data-id="' + esc(s.id) + '">Log</button></div></div></div>';
+    }
+    return '<div class="habit-card p-4 sm:p-5" style="border-top:4px solid ' + esc(s.color) + '">' + head + streakLine + body + '</div>';
+  }
+
+  function renderToday() {
+    var t = today();
+    var d = new Date();
+    document.getElementById('todayTitle').textContent =
+      d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    var list = document.getElementById('habitList');
+    var sums = HF.allSummaries(state.logs, state.habits, state.freezes, t);
+    if (!sums.length) {
+      list.innerHTML = '<div class="text-center text-[#5b6b3f] font-medium py-10 border-2 border-dashed border-[#d9e8b8] rounded-xl">No habits yet. Forge your first one above 👆</div>';
+      return;
+    }
+    list.innerHTML = sums.map(function (s) { return cardHTML(s, t); }).join('');
+  }
+
+  function wireToday() {
+    document.getElementById('habitList').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act]');
+      if (!b) return;
+      var id = b.getAttribute('data-id');
+      var act = b.getAttribute('data-act');
+      var t = today();
+      if (act === 'toggle') {
+        var r = HF.logDay(state.logs, state.habits, id, t);
+        if (r.action !== 'error') { state.logs = r.logs; save(); renderAll(); }
+      } else if (act === 'lognum') {
+        var inp = document.getElementById('amt-' + id);
+        var r2 = HF.logNumeric(state.logs, state.habits, id, t, inp ? inp.value : 0);
+        if (r2.ok) { state.logs = r2.logs; save(); renderAll(); }
+        else alert('Enter a positive amount to log.');
+      } else if (act === 'del') {
+        var h = HF.getHabit(state.habits, id);
+        if (h && confirm('Delete "' + h.name + '" and all its history?')) {
+          var r3 = HF.removeHabit(state.habits, state.logs, id);
+          state.habits = r3.habits; state.logs = r3.logs;
+          save(); renderAll();
+        }
+      }
+    });
+  }
+
+  /* ---------------- freezes ---------------- */
+
+  function renderFreezes() {
+    var box = document.getElementById('freezeList');
+    var fr = state.freezes.slice().sort();
+    if (!fr.length) {
+      box.innerHTML = '<span class="text-sm text-[#9db27a] font-medium">No frozen days yet.</span>';
+      return;
+    }
+    box.innerHTML = fr.map(function (k) {
+      return '<span class="freeze-chip">❄ ' + esc(k) +
+        ' <button class="font-extrabold text-[#0284c7] hover:text-red-600 px-1" data-unfreeze="' + esc(k) + '" aria-label="Unfreeze ' + esc(k) + '">✕</button></span>';
+    }).join('');
+  }
+
+  function wireFreezes() {
+    document.getElementById('btnFreezeToday').addEventListener('click', function () {
+      var r = HF.toggleFreeze(state.freezes, today());
+      state.freezes = r.freezes;
+      save(); renderAll();
+    });
+    document.getElementById('freezeList').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-unfreeze]');
+      if (!b) return;
+      var r = HF.toggleFreeze(state.freezes, b.getAttribute('data-unfreeze'));
+      state.freezes = r.freezes;
+      save(); renderAll();
+    });
+  }
+
+  /* ---------------- stats ---------------- */
+
+  function renderStats() {
+    var t = today();
+    var sums = HF.allSummaries(state.logs, state.habits, state.freezes, t);
+    var totalStreak = 0, weekPct = 0, n = 0;
+    for (var i = 0; i < sums.length; i++) {
+      totalStreak += sums[i].streak;
+      if (sums[i].type === 'freq' && sums[i].week) { weekPct += sums[i].week.pct; n++; }
+      else if (sums[i].type === 'numeric' && sums[i].numeric) { weekPct += sums[i].numeric.pct; n++; }
+      else if (sums[i].type === 'check') { weekPct += sums[i].todayDone ? 100 : 0; n++; }
+    }
+    document.getElementById('statHabits').textContent = sums.length;
+    document.getElementById('statStreak').textContent = totalStreak;
+    document.getElementById('statWeek').textContent = n ? Math.round(weekPct / n) + '%' : '0%';
+    document.getElementById('statFrozen').textContent = state.freezes.length;
+  }
+
+  /* ---------------- year calendar ---------------- */
+
+  function renderYear() {
+    var box = document.getElementById('yearCal');
+    var months = HF.yearMonths(calYear);
+    var act = HF.yearActivity(state.logs, state.freezes, calYear, calHabit === 'all' ? null : calHabit);
+    var html = '';
+    for (var i = 0; i < months.length; i++) {
+      var m = months[i];
+      var cells = '';
+      var wd = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      for (var w = 0; w < 7; w++) cells += '<div class="text-center text-[.55rem] font-extrabold text-[#9db27a]">' + wd[w] + '</div>';
+      for (var j = 0; j < m.grid.length; j++) {
+        var k = m.grid[j];
+        var inMonth = k.slice(0, 7) === (calYear + '-' + (m.month < 10 ? '0' + m.month : '' + m.month));
+        if (!inMonth) { cells += '<div class="yday dim"></div>'; continue; }
+        var a = act[k];
+        var cls = 'yday';
+        if (a) {
+          if (a.count >= 3) cls += ' lvl3';
+          else if (a.count === 2) cls += ' lvl2';
+          else if (a.count === 1) cls += ' lvl1';
+          if (a.frozen) cls += ' frozen';
+        }
+        var tip = k + (a ? ' — ' + a.count + ' logged' + (a.frozen ? ', frozen' : '') : '');
+        cells += '<div class="' + cls + '" title="' + tip + '">' + Number(k.slice(8, 10)) + '</div>';
+      }
+      html += '<div><div class="font-extrabold text-sm mb-2">' + m.name + '</div>' +
+        '<div class="grid grid-cols-7 gap-[3px]">' + cells + '</div></div>';
+    }
+    box.innerHTML = html;
+  }
+
+  function wireYear() {
+    var ys = document.getElementById('yearSelect');
+    var opts = '';
+    for (var y = calYear - 2; y <= calYear + 1; y++) {
+      opts += '<option value="' + y + '"' + (y === calYear ? ' selected' : '') + '>' + y + '</option>';
+    }
+    ys.innerHTML = opts;
+    ys.addEventListener('change', function () { calYear = Number(ys.value); renderYear(); });
+    document.getElementById('habitFilter').addEventListener('change', function (e) {
+      calHabit = e.target.value; renderYear();
+    });
+  }
+
+  /* ---------------- backup ---------------- */
+
+  function wireBackup() {
+    document.getElementById('btnExport').addEventListener('click', function () {
+      var json = HF.exportJSON(state.habits, state.logs, state.freezes);
+      var blob = new Blob([json], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'habitforge-backup-' + today() + '.json';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    });
+
+    function doImport(text) {
+      var msg = document.getElementById('importMsg');
+      var res = HF.importJSON(text);
+      if (!res.ok) {
+        msg.style.color = '#dc2626';
+        msg.textContent = 'Import failed: ' + res.error + '. Make sure this is a HabitForge export file.';
+        return;
+      }
+      // Merge: keep existing, add new by id.
+      var ids = {};
+      for (var i = 0; i < state.habits.length; i++) ids[state.habits[i].id] = true;
+      for (var j = 0; j < res.habits.length; j++) {
+        if (!ids[res.habits[j].id]) { state.habits.push(res.habits[j]); ids[res.habits[j].id] = true; }
+      }
+      var lids = {};
+      for (var k = 0; k < state.logs.length; k++) lids[state.logs[k].id] = true;
+      for (var l = 0; l < res.logs.length; l++) {
+        if (!lids[res.logs[l].id]) { state.logs.push(res.logs[l]); lids[res.logs[l].id] = true; }
+      }
+      var fset = {};
+      for (var f = 0; f < state.freezes.length; f++) fset[state.freezes[f]] = true;
+      for (var g = 0; g < res.freezes.length; g++) {
+        if (!fset[res.freezes[g]]) { state.freezes.push(res.freezes[g]); fset[res.freezes[g]] = true; }
+      }
+      save(); renderAll();
+      msg.style.color = '#4d7c0f';
+      msg.textContent = 'Imported ' + res.habits.length + ' habits, ' + res.logs.length + ' logs (' + res.skipped + ' skipped).';
+    }
+
+    document.getElementById('btnImport').addEventListener('click', function () {
+      doImport(document.getElementById('importText').value);
+    });
+    document.getElementById('importFile').addEventListener('change', function (e) {
+      var f = e.target.files && e.target.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function () { doImport(String(reader.result || '')); };
+      reader.readAsText(f);
+    });
+  }
+
+  /* ---------------- boot ---------------- */
+
+  function renderAll() {
+    renderStackOptions();
+    renderToday();
+    renderFreezes();
+    renderStats();
+    renderYear();
+  }
+
+  load();
+  wireForm();
+  wireToday();
+  wireFreezes();
+  wireYear();
+  wireBackup();
+  renderAll();
+})();
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is HabitForge really a free habit tracker app with no signup?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. HabitForge is a habit tracker app free forever — no accounts, no subscriptions, no premium tier hiding basic features. Everything runs in your browser and your data is stored in localStorage on your own device." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do weekly frequencies like \"3x per week\" work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Choose the \"X times per week\" tracking style and set your number, for example 3. Each week runs Monday to Sunday. Log any three days within the window and the week counts as complete, extending your weekly streak." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a streak freeze day?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A streak freeze marks a day as a planned rest day. Frozen days do not grow your streak, but they do not break it either. Freezes also count as credited days toward weekly frequency targets and appear as blue rings on the full-year calendar." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I track numeric goals like \"read 20 pages\"?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Create a habit with the numeric-goal style, set a target value and unit, and choose a per-day or per-week scope. Every time you log an amount, the progress ring fills — logging 15 of 20 pages shows 75%." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is habit stacking and how do I use it here?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Habit stacking means attaching a new habit to an existing one so the old habit triggers the new one. In HabitForge, pick any existing habit in the \"Stack after\" dropdown when creating a habit, and the card shows a chain link like \"after Morning coffee\"." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I back up or move my habit data?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Open the Backup panel and click Export JSON to download a file containing all your habits, logs, and freeze days. Paste that file's contents or upload the file into the Import box on any device or browser to restore everything." }
+    }
+  ]
+}
+</script>
+
+</body>
+</html>
